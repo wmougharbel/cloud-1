@@ -10,3 +10,7 @@
     - name: Print confirmation
       ansible.builtin.debug:
         msg: Ping successful
+
+    - name: Print facts
+      ansible.builtin.debug:
+        var: ansible_facts
