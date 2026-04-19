@@ -1,0 +1,10 @@
+---
+- name: Ping target machine(s) and print message
+  hosts: myhosts
+  tasks:
+    - name: Ping target machine(s)
+      ansible.builtin.ping:
+
+    - name: Print confirmation
+      ansible.builtin.debug:
+        msg: Ping successful
