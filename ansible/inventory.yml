@@ -1,0 +1,4 @@
+myhosts:
+  hosts:
+    cloud-1:
+      ansible_host: "{{ lookup('ini', 'VM_IP type=properties file=../.env') }}"
