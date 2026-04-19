@@ -1,6 +1,8 @@
 ---
 - name: Ping target machine(s) and print message
-  hosts: myhosts
+  hosts: all
+  become: true
+  gather_facts: true
   tasks:
     - name: Ping target machine(s)
       ansible.builtin.ping:

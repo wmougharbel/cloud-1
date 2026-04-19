@@ -1,0 +1,10 @@
+- name: Reboot remote
+  hosts: all
+  become: true
+  tasks:
+    - name: Reboot
+      ansible.builtin.reboot:
+    
+    - name: Print success
+      ansible.builtin.debug:
+        msg: Rebooting...
