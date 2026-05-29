@@ -1,0 +1,34 @@
+- name: Create dedicated Ansible deployment user
+  hosts: all
+  become: true
+  
+  tasks:
+    - name: Ensure the 'ansible_user' group exists
+      ansible.builtin.group:
+        name: ansible_user
+        state: present
+
+    - name: Create the 'ansible_user' account
+      ansible.builtin.user:
+        name: ansible_user
+        shell: /bin/bash
+        group: ansible_user
+        groups: sudo
+        append: true
+        state: present
+
+    - name: Deploy all local public SSH keys to the new user
+      ansible.posix.authorized_key:
+            user: ansible_user
+            state: present
+            key: "{{ lookup('file', item) }}"
+      with_fileglob:
+            - "~/.ssh/*.pub"
+
+    - name: Allow 'ansible_user' to use sudo without a password prompt
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/ansible_user
+        line: "ansible_user ALL=(ALL) NOPASSWD:ALL"
+        validate: "visudo -cf %s"
+        create: true
+        mode: '0440'
