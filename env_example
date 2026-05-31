@@ -1,1 +1,2 @@
-VM_IP=TARGET_HOST_IP_ADDRESS
+# You can change your remote user, default is ansible_user
+remote_user = 
