@@ -5,11 +5,23 @@
 
 	This project relies on external modules to manage system users, SSH authorization, and firewall configurations. Install the required collections by running the following commands in your terminal:
 
-```bash
-ansible-galaxy collection install community.general
+	```bash
+	ansible-galaxy collection install community.general
 
-ansible-galaxy collection install ansible.posix --force
-```
+	ansible-galaxy collection install ansible.posix --force
+	```
+
+- Environment Variables Configuration
+	The playbooks dynamically read configurations from a local environment file.
+
+	In the project root directory, copy the provided example file to create your active environment configuration:
+   ```bash
+   cp .env_example .env
+   ```
+   Open the newly created `.env` file and define your target deployment username:
+   ```ini
+   target_deploy_user=your_custom_username
+   ```
 
 - Create an `inventory.yml` in the `ansible/` folder. Populate it with your cloud target IPs
 	```
