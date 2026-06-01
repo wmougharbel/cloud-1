@@ -1,0 +1,79 @@
+- name: Install docker, docker-compose and ufw firewall with config
+  hosts: all
+  become: true
+  remote_user: "{{ lookup('ansible.builtin.ini', 'target_deploy_user', type='properties', file=playbook_dir ~ '/../../.env') | default('ansible_user', true) }}"
+  vars:
+    target_deploy_user: "{{ lookup('ansible.builtin.ini', 'target_deploy_user', type='properties', file=playbook_dir ~ '/../../.env') | default('ansible_user', true) }}"
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install dependencies
+      ansible.builtin.apt:
+        name:
+          - curl
+          - ca-certificates
+          - ufw
+        state: present
+
+    - name: Add GPG key
+      ansible.builtin.shell:
+        cmd: |
+          install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+          chmod a+r /etc/apt/keyrings/docker.asc
+
+    - name: Add the repository to Apt sources
+      ansible.builtin.shell:
+        cmd: |
+          tee /etc/apt/sources.list.d/docker.sources <<EOF
+          Types: deb
+          URIs: https://download.docker.com/linux/ubuntu
+          Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+          Components: stable
+          Architectures: $(dpkg --print-architecture)
+          Signed-By: /etc/apt/keyrings/docker.asc
+          EOF
+
+    - name: Install docker
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Add "{{ target_deploy_user }}" to docker group
+      ansible.builtin.user:
+        name: "{{ target_deploy_user }}"
+        groups: docker
+        append: true
+
+    - name: Allow SSH
+      community.general.ufw:
+        rule: allow
+        port: "22"
+        proto: tcp
+
+    - name: Allow HTTP and HTTPS
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - "80"
+        - "443"
+
+    - name: Set default deny incoming policy
+      community.general.ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled
+        policy: deny

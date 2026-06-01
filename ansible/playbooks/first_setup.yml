@@ -1,35 +1,40 @@
 - name: Create dedicated Ansible deployment user
   hosts: all
-  remote_user: "{{ lookup('ansible.builtin.env', 'remote_user', default='ansible_user') }}"
   become: true
+  vars:
+    target_deploy_user: "{{ lookup('ansible.builtin.ini', 'target_deploy_user', type='properties', file=playbook_dir ~ '/../../.env') | default('ansible_user', true) }}"
 
   tasks:
-    - name: Ensure the '{{ remote_user }}' group exists
+    - name: Debug msg
+      ansible.builtin.debug:
+        msg: "Ansible is now creating {{ target_deploy_user }} on the server."
+
+    - name: Ensure the '{{ target_deploy_user }}' group exists
       ansible.builtin.group:
-        name: "{{ remote_user }}"
+        name: "{{ target_deploy_user }}"
         state: present
 
-    - name: Create the '{{ remote_user }}' account
+    - name: Create the '{{ target_deploy_user }}' account
       ansible.builtin.user:
-        name: "{{ remote_user }}"
+        name: "{{ target_deploy_user }}"
         shell: /bin/bash
-        group: "{{ remote_user }}"
+        group: "{{ target_deploy_user }}"
         groups: sudo
         append: true
         state: present
 
     - name: Deploy all local public SSH keys to the new user
       ansible.posix.authorized_key:
-            user: "{{ remote_user }}"
+            user: "{{ target_deploy_user }}"
             state: present
             key: "{{ lookup('file', item) }}"
       with_fileglob:
             - "~/.ssh/*.pub"
 
-    - name: Allow '{{ remote_user }}' to use sudo without a password prompt
+    - name: Allow '{{ target_deploy_user }}' to use sudo without a password prompt
       ansible.builtin.lineinfile:
-        path: "/etc/sudoers.d/{{ remote_user }}"
-        line: "{{ remote_user }} ALL=(ALL) NOPASSWD:ALL"
+        path: "/etc/sudoers.d/{{ target_deploy_user }}"
+        line: "{{ target_deploy_user }} ALL=(ALL) NOPASSWD:ALL"
         validate: "visudo -cf %s"
         create: true
         mode: '0440'

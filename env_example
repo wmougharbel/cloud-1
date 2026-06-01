@@ -1,2 +1,2 @@
 # You can change your remote user, default is ansible_user
-remote_user = 
+target_deploy_user = 

@@ -3,6 +3,7 @@
   hosts: all
   become: true
   gather_facts: true
+  remote_user: "{{ lookup('ansible.builtin.ini', 'target_deploy_user', type='properties', file=playbook_dir ~ '/../../.env') | default('ansible_user', true) }}"
   tasks:
     - name: Ping target machine(s)
       ansible.builtin.ping:
