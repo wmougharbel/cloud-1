@@ -1,0 +1,12 @@
+- name: Deploy the wordpress site
+  hosts: all
+  become: true
+  remote_user: "{{ lookup('ansible.builtin.ini', 'target_deploy_user', type='properties', file=playbook_dir ~ '/../../.env') | default('ansible_user', true) }}"
+
+  vars:
+    target_deploy_user: "{{ lookup('ansible.builtin.ini', 'target_deploy_user', type='properties', file=playbook_dir ~ '/../../.env') | default('ansible_user', true) }}"
+
+  roles:
+    - docker
+    - ufw
+    # - containers
