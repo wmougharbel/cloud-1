@@ -1,8 +1,0 @@
-myhosts:
-  hosts:
-    db:
-      ansible_host: #TODO: IP address of the database server
-      ansible_user: #TODO: username for the database server
-    wordpress:
-      ansible_host: #TODO: IP address of the WordPress server
-      ansible_user: #TODO: username for the WordPress server

@@ -1,0 +1,5 @@
+- name: Provision Azure Infrastructure
+  hosts: localhost
+  connection: local
+  roles:
+    - azure_infra
