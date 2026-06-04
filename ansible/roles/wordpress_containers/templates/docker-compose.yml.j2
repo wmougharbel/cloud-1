@@ -1,0 +1,65 @@
+services:
+    nginx:
+        image: nginx:alpine
+        container_name: nginx
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - /home/{{ target_deploy_user }}/wordpress/nginx.conf:/etc/nginx/nginx.conf:ro
+            - /home/{{ target_deploy_user }}/wordpress/certs/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro
+            - /home/{{ target_deploy_user }}/wordpress/certs/privkey.pem:/etc/nginx/certs/privkey.pem:ro
+            - wp_data:/var/www/html:ro
+        restart: always
+        networks:
+            wp_network:
+                aliases:
+                    - localhost
+    database:
+        image: mysql:8.0
+        container_name: database
+        restart: always
+        environment:
+        - MYSQL_ROOT_PASSWORD={{ vault_db_root_password }}
+        - MYSQL_DATABASE={{ wp_db_name }}
+        - MYSQL_USER={{ wp_db_user }}
+        - MYSQL_PASSWORD={{ vault_wp_db_password }}
+        volumes:
+            - db_data:/var/lib/mysql
+        networks:
+            - wp_network
+    phpmyadmin:
+        image: phpmyadmin:latest
+        container_name: phpmyadmin
+        restart: always
+        networks:
+            - wp_network
+    wordpress:
+        build:
+            context: /home/{{ target_deploy_user }}/wordpress
+            dockerfile: Dockerfile
+        container_name: wordpress
+        restart: always
+        environment:
+        - WORDPRESS_DB_HOST=database
+        - WORDPRESS_DB_NAME={{ wp_db_name }}
+        - WORDPRESS_DB_USER={{ wp_db_user }}
+        - WORDPRESS_DB_PASSWORD={{ vault_wp_db_password }}
+
+        - WP_ADMIN_USER={{ wp_admin_user }}
+        - WP_ADMIN_PASSWORD={{ vault_wp_admin_password }}
+        - WP_ADMIN_EMAIL={{ wp_admin_email }}
+        - WP_URL={{ wp_site_url }}
+        - WP_TITLE={{ wp_site_title }}
+        volumes:
+            - wp_data:/var/www/html
+        networks:
+            - wp_network
+
+volumes:
+        db_data:
+        wp_data:
+
+networks:
+  wp_network:
+    driver: bridge

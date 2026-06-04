@@ -9,4 +9,4 @@
   roles:
     - docker
     - ufw
-    # - containers
+    - wordpress_containers

@@ -1,0 +1,10 @@
+env_file_path: "{{ playbook_dir }}/../../.env"
+
+wp_db_name: "{{ lookup('ansible.builtin.ini', 'wp_db_name', type='properties', file=env_file_path) | default('wordpress', true) }}"
+wp_db_user: "{{ lookup('ansible.builtin.ini', 'wp_db_user', type='properties', file=env_file_path) | default('db_enjoyer', true) }}"
+
+wp_admin_user: "{{ lookup('ansible.builtin.ini', 'wp_admin_user', type='properties', file=env_file_path) | default('someone', true) }}"
+wp_admin_email: "{{ lookup('ansible.builtin.ini', 'wp_admin_email', type='properties', file=env_file_path) | default('admin@example.com', true) }}"
+wp_site_url: "{{ lookup('ansible.builtin.ini', 'domain', type='properties', file=env_file_path) | default('http://localhost', true) }}"
+wp_site_title: "{{ lookup('ansible.builtin.ini', 'wp_title', type='properties', file=env_file_path) | default('My Cloud Site', true) }}"
+wp_site_url_domain: "{{ wp_site_url | urlsplit('hostname') | default('localhost', true) }}"

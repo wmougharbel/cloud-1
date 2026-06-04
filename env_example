@@ -1,2 +1,9 @@
 # You can change your remote user, default is ansible_user
-target_deploy_user = 
+target_deploy_user=
+wp_db_name=
+wp_db_user=
+
+wp_admin_user=
+wp_admin_email=
+domain=
+wp_title=

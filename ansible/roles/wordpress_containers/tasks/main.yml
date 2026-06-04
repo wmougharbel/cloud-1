@@ -1,0 +1,66 @@
+- name: Load encrypted vault secrets
+  include_vars:
+    file: vault.yml
+
+- name: Create WordPress directory
+  ansible.builtin.file:
+    path: "/home/{{ target_deploy_user }}/wordpress"
+    state: directory
+    mode: '0755'
+
+- name: Ensure the certs directory exists
+  ansible.builtin.file:
+    path: "/home/{{ target_deploy_user }}/wordpress/certs"
+    state: directory
+    mode: '0755'
+
+- name: Nginx config from template
+  template:
+    src: nginx.conf.j2
+    dest: "/home/{{ target_deploy_user }}/wordpress/nginx.conf"
+    mode: '0644'
+
+- name: Copy build assets to remote host
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/home/{{ target_deploy_user }}/wordpress/{{ item }}"
+    mode: '0755'
+  loop:
+    - Dockerfile
+    - auto-install.sh
+
+- name: Ensure target directory exists for certificates on the server
+  file:
+    path: "/home/{{ target_deploy_user }}/wordpress/certs"
+    state: directory
+    owner: "{{ target_deploy_user }}"
+    group: "{{ target_deploy_user }}"
+    mode: '0755'
+
+- name: Securely upload and decrypt SSL Private Key
+  copy:
+    src: certs/privkey.pem
+    dest: "/home/{{ target_deploy_user }}/wordpress/certs/privkey.pem"
+    owner: "{{ target_deploy_user }}"
+    group: "{{ target_deploy_user }}"
+    mode: '0600'
+
+- name: Securely upload and decrypt SSL Full Chain Certificate
+  copy:
+    src: certs/fullchain.pem
+    dest: "/home/{{ target_deploy_user }}/wordpress/certs/fullchain.pem"
+    owner: "{{ target_deploy_user }}"
+    group: "{{ target_deploy_user }}"
+    mode: '0644'
+
+- name: Deploy docker compose from template
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "/home/{{ target_deploy_user }}/wordpress/docker-compose.yml"
+    mode: "0644"
+
+- name: Bring up the complete Docker Compose Stack
+  community.docker.docker_compose_v2:
+    project_src: "/home/{{ target_deploy_user }}/wordpress"
+    state: present
+    build: always
